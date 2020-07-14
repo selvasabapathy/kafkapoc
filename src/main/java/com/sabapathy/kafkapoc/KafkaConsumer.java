@@ -1,21 +1,44 @@
 package com.sabapathy.kafkapoc;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.kafka.annotation.EnableKafka;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.listener.AcknowledgingMessageListener;
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.stereotype.Service;
 
-@Configuration
-@EnableKafka
+@Service
 public class KafkaConsumer
 {
-    private final static String TOPIC_NAME = "test";
+    private static final String TOPIC_NAME = "test";
 
-    @KafkaListener(topics = TOPIC_NAME, containerFactory = "defaultKafkaListenerContainerFactory")
-    public void consume(ConsumerRecord<?, ?> consumerRecord, Acknowledgment acknowledgment) throws Exception
+    @Autowired
+    ConcurrentKafkaListenerContainerFactory<String, String> containerFactory;
+
+    @Value("${kafka.brconsent.listener.enable}")
+    private boolean attachListener;
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void afterStartup()
     {
-        System.out.println("KafkaConsumer message: " + consumerRecord);
-        acknowledgment.acknowledge();
+        if (!attachListener) {
+            // Find out from DatabaseModeIdentifier's isPrimary()... assume true for now!
+            attachListener = true;
+            System.out.println("kafka.brconsent.listener.enable (after Db check): " + attachListener);
+        }
+        
+        ContainerProperties containerProperties = new ContainerProperties(TOPIC_NAME);
+        containerProperties.setMessageListener(
+                (AcknowledgingMessageListener<?, ?>) (consumerRecord, acknowledgment) -> System.out
+                        .println("KafkaConsumer message: " + consumerRecord)
+        );
+
+        ConcurrentMessageListenerContainer listenerContainer = new ConcurrentMessageListenerContainer<>(
+                containerFactory.getConsumerFactory(), containerProperties);
+        listenerContainer.start();
     }
 }
