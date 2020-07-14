@@ -8,8 +8,8 @@
 		<version>2.3.1.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.ihg</groupId>
-	<artifactId>kafka</artifactId>
+	<groupId>com.sabapathy</groupId>
+	<artifactId>kafkapoc</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>kafka</name>
 	<description>Demo project for Kafka</description>
