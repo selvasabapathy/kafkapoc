@@ -111,7 +111,7 @@ public class ConsentConsumer
         getMessageListenerContainer().stop();
     }
 
-    @Scheduled(fixedDelay = 500000)
+    @Scheduled(fixedDelay = 3600000)
     public void toggleConsumer()
     {
         if (isForceStopped() && isListening())
